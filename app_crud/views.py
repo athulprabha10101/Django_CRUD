@@ -54,7 +54,7 @@ def user_home(request):
         return render (request, 'user_home.html')
     return redirect('user_login')
 
-
+@never_cache
 def user_logout(request):
     if request.user.is_authenticated:
         logout(request)
