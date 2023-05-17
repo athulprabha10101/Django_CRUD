@@ -14,5 +14,4 @@ urlpatterns = [
         path('add_user', views.add_user, name = 'add_user'),
         
 
-
     ]

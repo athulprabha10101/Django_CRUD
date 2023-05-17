@@ -65,8 +65,12 @@ def user_logout(request):
 def admin_home(request):
   if request.user.is_authenticated and request.user.is_superuser:
     user_data = User.objects.all()
-
-    return render (request, 'admin_home.html',{'user_data': user_data})
+    search = request.POST.get('search')
+    if search:
+        details = User.objects.filter(username__istartswith=search)
+    else:
+        details = User.objects.all()
+    return render(request, 'admin_home.html', {'user_data': details})
 
 
 def edit_details(request, id):
@@ -104,7 +108,7 @@ def add_user(request):
         
         if password == cpassword: 
             if User.objects.filter(username = username).exists():
-                return render(request, 'signup.html''signup.html',{'pw_error': 'Password mismatch','taken': 'Username taken'})
+                return render(request, 'signup.html',{'pw_error': 'Password mismatch','taken': 'Username taken'})
             if User.objects.filter(email = email):
                 return render(request, 'signup.html''signup.html',{'pw_error': 'Email already registered'})
             else:
