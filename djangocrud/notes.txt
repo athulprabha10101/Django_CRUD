@@ -1,0 +1,5 @@
+ {% comment %} <td><a><a class="btn btn-outline-danger" href="{% url 'add_details'%}">ADD</a> </a></td> {% endcomment %}
+          {% comment %} <td><a><a class="btn btn-outline-danger" href="{% url 'delete_details'%}">DELETE</a> </a></td> {% endcomment %}
+
+
+          {% comment %} <a><a class="btn btn-primary" >Update</a> </a> {% endcomment %}
