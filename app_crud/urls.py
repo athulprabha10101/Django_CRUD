@@ -10,6 +10,8 @@ urlpatterns = [
         path('admin_home', views.admin_home, name='admin_home'),
         path('edit_details<int:id>', views.edit_details, name = 'edit_details'),
         path('update_details<int:id>', views.update_details, name = 'update_details'),
+        path('delete_details<int:id>', views.delete_details, name = 'delete_details'),
+        path('add_user', views.add_user, name = 'add_user'),
         
 
 

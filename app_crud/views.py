@@ -89,4 +89,28 @@ def update_details(request, id):
     return render(request, 'edit_details.html', {'user': user})
 
 
+def delete_details(request, id):
+    user = User.objects.get(id = id)
+    user.delete()
+    return redirect('admin_home')
+
+def add_user(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        cpassword = request.POST.get('cpassword')
+        
+        if password == cpassword: 
+            if User.objects.filter(username = username).exists():
+                return render(request, 'signup.html''signup.html',{'pw_error': 'Password mismatch','taken': 'Username taken'})
+            if User.objects.filter(email = email):
+                return render(request, 'signup.html''signup.html',{'pw_error': 'Email already registered'})
+            else:
+                User.objects.create_user(first_name = name, username = username, email = email, password = password).save()
+                return redirect('admin_home')
+        else:
+            return render(request, 'signup.html',{'pw_error': 'Password mismatch'}) 
+    return render(request, 'add_user.html')
 
