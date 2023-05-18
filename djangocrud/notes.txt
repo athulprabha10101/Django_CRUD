@@ -3,3 +3,18 @@
 
 
           {% comment %} <a><a class="btn btn-primary" >Update</a> </a> {% endcomment %}
+
+
+        if request.user.is_authenticated:
+        return redirect('user_home')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = User.objects.get(username = username, password = password) 
+        if user is not None and user.is_superuser:
+            login(request,user)
+            return redirect ('admin_home' if user.is_superuser else 'user_home')
+
+    return render(request, 'login.html')
