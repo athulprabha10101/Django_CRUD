@@ -8,21 +8,27 @@ from django.views.decorators.cache import never_cache
 
 @never_cache
 def user_login(request):
+
     if request.user.is_authenticated:
-        return redirect('user_home')
-    
+        if request.user.is_superuser:
+            return redirect('admin_home')
+        else:
+            return redirect('user_home')
+        
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = auth.authenticate(username = username, password = password) 
-        if user is not None and user.is_superuser:
-            login(request,user)
-            return redirect ('admin_home')
+        user = User.objects.filter(username=username).first()
 
-        elif user is not None:
-            login(request,user)
-            return redirect('user_home')
+        if user is not None and user.check_password(password):
+            login(request, user)
+
+            if user.is_superuser:
+                return redirect('admin_home')
+            else:
+                return redirect('user_home')
+        
 
     return render(request, 'login.html')
 
