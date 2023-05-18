@@ -1,15 +1,17 @@
 from django.contrib.auth import login, logout
 from django.shortcuts import render, redirect
-
+from django.contrib.auth import authenticate
 from django.contrib.auth.models import User, auth
 from django.views.decorators.cache import never_cache
+
+from app_crud.models import custom_user
 
 # Create your views here.
 
 @never_cache
 def user_login(request):
 
-    if request.user.is_authenticated:
+    if 'username' in request.session:
         if request.user.is_superuser:
             return redirect('admin_home')
         else:
@@ -19,10 +21,14 @@ def user_login(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = User.objects.filter(username=username).first()
-
-        if user is not None and user.check_password(password):
-            login(request, user)
+        user = custom_user.objects.filter(username=username, password = password).first()
+     
+        if user is not None:
+            print("odifj")
+            
+            print(user.username)
+            
+            request.session["username"] = username
 
             if user.is_superuser:
                 return redirect('admin_home')
@@ -42,12 +48,12 @@ def signup(request):
         cpassword = request.POST.get('cpassword')
         
         if password == cpassword: 
-            if User.objects.filter(username = username).exists():
+            if custom_user.objects.filter(username = username).exists():
                 return render(request, 'signup.html''signup.html',{'pw_error': 'Password mismatch','taken': 'Username taken'})
-            if User.objects.filter(email = email):
+            if custom_user.objects.filter(email = email):
                 return render(request, 'signup.html''signup.html',{'pw_error': 'Email already registered'})
             else:
-                User.objects.create_user(first_name = name, username = username, email = email, password = password).save()
+                custom_user(first_name = name, username = username, is_superuser = True, email = email, password = password).save()
                 return redirect('user_login')
         else:
             return render(request, 'signup.html',{'pw_error': 'Password mismatch'}) 
@@ -56,37 +62,38 @@ def signup(request):
 
 @never_cache
 def user_home(request):
-    if request.user.is_authenticated and not request.user.is_superuser:
+    if 'username' in request.session and not request.user.is_superuser:
         return render (request, 'user_home.html')
     
     return redirect('user_login')
 
 @never_cache
 def user_logout(request):
-    if request.user.is_authenticated:
-        logout(request)
+    if 'username' in request.session:
+        request.session.flush()
     return redirect('user_login')
 
 @never_cache
 def admin_home(request):
-  if request.user.is_authenticated and request.user.is_superuser:
-    user_data = User.objects.all()
+  print("hello")
+  if 'username' in request.session and request.session['username'] == 'superuse':
+    user_data = custom_user.objects.all()
     search = request.POST.get('search')
     if search:
-        details = User.objects.filter(username__istartswith=search)
+        details = custom_user.objects.filter(username__istartswith=search)
     else:
-        details = User.objects.all()
+        details = custom_user.objects.all()
     return render(request, 'admin_home.html', {'user_data': details})
 
 
 def edit_details(request, id):
-    if request.user.is_authenticated and request.user.is_superuser:
-        user = User.objects.get(id = id)
+    if 'username' in request.session and request.user.is_superuser:
+        user = custom_user.objects.get(id = id)
         return render(request, 'edit_details.html',{'user':user})
     
 def update_details(request, id):
     print("hello")
-    user = User.objects.get(id=id)
+    user = custom_user.objects.get(id=id)
     if request.method == 'POST':
         
         user.first_name = request.POST.get('name')
@@ -100,7 +107,7 @@ def update_details(request, id):
 
 
 def delete_details(request, id):
-    user = User.objects.get(id = id)
+    user = custom_user.objects.get(id = id)
     user.delete()
     return redirect('admin_home')
 
@@ -113,12 +120,12 @@ def add_user(request):
         cpassword = request.POST.get('cpassword')
         
         if password == cpassword: 
-            if User.objects.filter(username = username).exists():
+            if custom_user.objects.filter(username = username).exists():
                 return render(request, 'signup.html',{'pw_error': 'Password mismatch','taken': 'Username taken'})
-            if User.objects.filter(email = email):
+            if custom_user.objects.filter(email = email):
                 return render(request, 'signup.html''signup.html',{'pw_error': 'Email already registered'})
             else:
-                User.objects.create_user(first_name = name, username = username, email = email, password = password).save()
+                custom_user.objects.create_user(first_name = name, username = username, email = email, password = password).save()
                 return redirect('admin_home')
         else:
             return render(request, 'signup.html',{'pw_error': 'Password mismatch'}) 
