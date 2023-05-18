@@ -28,6 +28,7 @@ def user_login(request):
                 return redirect('admin_home')
             else:
                 return redirect('user_home')
+        
 
     return render(request, 'login.html')
 
