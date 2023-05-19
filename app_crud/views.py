@@ -12,7 +12,10 @@ from app_crud.models import custom_user
 def user_login(request):
 
     if 'username' in request.session:
-        if request.user.is_superuser:
+        username =request.session['username']
+        user = custom_user.objects.get(username=username)
+    
+        if user.is_superuser:
             return redirect('admin_home')
         else:
             return redirect('user_home')
@@ -24,7 +27,6 @@ def user_login(request):
         user = custom_user.objects.filter(username=username, password = password).first()
      
         if user is not None:
-            print("odifj")
             
             print(user.username)
             
@@ -62,8 +64,13 @@ def signup(request):
 
 @never_cache
 def user_home(request):
-    if 'username' in request.session and not request.user.is_superuser:
-        return render (request, 'user_home.html')
+    if 'username' in request.session: 
+        username =request.session['username']
+        user = custom_user.objects.get(username=username)
+        
+        if not user.is_superuser:
+            return render (request, 'user_home.html')
+        else: return redirect('user_login')
     
     return redirect('user_login')
 
@@ -75,24 +82,29 @@ def user_logout(request):
 
 @never_cache
 def admin_home(request):
-  print("hello")
-  if 'username' in request.session and request.session['username'] == 'superuse':
-    user_data = custom_user.objects.all()
-    search = request.POST.get('search')
-    if search:
-        details = custom_user.objects.filter(username__istartswith=search)
-    else:
-        details = custom_user.objects.all()
-    return render(request, 'admin_home.html', {'user_data': details})
+  
+  if 'username' in request.session: 
+    username =request.session['username']
+    user = custom_user.objects.get(username=username)
+    if user.is_superuser:
 
+        user_data = custom_user.objects.all()
+        search = request.POST.get('search')
+        if search:
+            details = custom_user.objects.filter(username__istartswith=search)
+        else:
+            details = custom_user.objects.filter(is_superuser=False)
+        return render(request, 'admin_home.html', {'user_data': details})
+    else: return redirect('user_login')
 
 def edit_details(request, id):
-    if 'username' in request.session and request.user.is_superuser:
+    
+    if 'username' in request.session:
         user = custom_user.objects.get(id = id)
         return render(request, 'edit_details.html',{'user':user})
     
 def update_details(request, id):
-    print("hello")
+    
     user = custom_user.objects.get(id=id)
     if request.method == 'POST':
         
@@ -112,6 +124,7 @@ def delete_details(request, id):
     return redirect('admin_home')
 
 def add_user(request):
+    
     if request.method == 'POST':
         name = request.POST.get('name')
         username = request.POST.get('username')
@@ -123,9 +136,9 @@ def add_user(request):
             if custom_user.objects.filter(username = username).exists():
                 return render(request, 'signup.html',{'pw_error': 'Password mismatch','taken': 'Username taken'})
             if custom_user.objects.filter(email = email):
-                return render(request, 'signup.html''signup.html',{'pw_error': 'Email already registered'})
+                return render(request, 'signup.html',{'pw_error': 'Email already registered'})
             else:
-                custom_user.objects.create_user(first_name = name, username = username, email = email, password = password).save()
+                custom_user(first_name = name, username = username, email = email, password = password).save()
                 return redirect('admin_home')
         else:
             return render(request, 'signup.html',{'pw_error': 'Password mismatch'}) 
